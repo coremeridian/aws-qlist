@@ -1,0 +1,10 @@
+{
+  "name": "cloudfront-edge-invalidator",
+  "version": "1.0.0",
+  "dependencies": {
+    "@aws-sdk/client-cloudfront": "^3.186.0",
+    "@aws-sdk/client-codepipeline": "^3.186.0",
+    "@aws-sdk/client-lambda": "^3.186.0",
+    "@aws-sdk/credential-providers": "^3.186.0"
+  }
+}
