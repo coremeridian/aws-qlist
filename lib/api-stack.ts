@@ -77,6 +77,7 @@ export default class APIStack extends cdk.Stack {
         environment: { [key: string]: string } = {}
     ): lambda.Function {
         return new lambda.Function(this, config.name, {
+            functionName: `API-${config.name}`,
             runtime: lambda.Runtime.NODEJS_16_X,
             memorySize: 128,
             timeout: cdk.Duration.seconds(5),

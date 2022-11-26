@@ -34,6 +34,7 @@ interface PipelineStackProps extends cdk.StackProps {
     readonly edgeLambdaCode: CfnParametersCode;
     readonly edgeRespLambdaCode: CfnParametersCode;
     readonly edgeInvalidator: Function;
+    readonly integratorFunction: Function;
     readonly distributionId: string;
 }
 
@@ -60,15 +61,6 @@ export default class PipelineStack extends cdk.Stack {
         const deployApprovalAction = new ManualApprovalAction({
             actionName: "Approve",
         });
-
-        const role = iam.Role.fromRoleArn(
-            this,
-            "Admin",
-            cdk.Arn.format(
-                { service: "iam", resource: "role", resourceName: "Admin" },
-                this
-            )
-        );
 
         const invalidateBuildProject = new PipelineProject(
             this,
@@ -160,6 +152,7 @@ export default class PipelineStack extends cdk.Stack {
                             }),
                             input: cdkSourceOutput,
                             outputs: [cdkBuildOutput],
+                            runOrder: 2,
                         }),
                         new CodeBuildAction({
                             actionName: "qlist",
@@ -262,6 +255,7 @@ export default class PipelineStack extends cdk.Stack {
                                 edgeBuildOutput,
                                 edgeRespBuildOutput,
                             ],
+                            runOrder: 2,
                         }),
                     ],
                 },
@@ -319,13 +313,13 @@ export default class PipelineStack extends cdk.Stack {
                                 ...props.edgeLambdaCode.assign(
                                     ((location) => ({
                                         ...location,
-                                        objectVersion: s3VersionId.attrValue,
+                                        //objectVersion: s3VersionId.attrValue,
                                     }))(edgeBuildOutput.s3Location)
                                 ),
                                 ...props.edgeRespLambdaCode.assign(
                                     ((location) => ({
                                         ...location,
-                                        objectVersion: s3VersionId.attrValue,
+                                        //objectVersion: s3VersionId.attrValue,
                                     }))(edgeRespBuildOutput.s3Location)
                                 ),
                             },
@@ -339,12 +333,19 @@ export default class PipelineStack extends cdk.Stack {
                             extraInputs: [buildStaticOutput],
                             runOrder: 3,
                         }),
+                        new LambdaInvokeAction({
+                            actionName: "InvalidateEdge",
+                            lambda: props.edgeInvalidator,
+                            runOrder: 4,
+                        }),
+                        new LambdaInvokeAction({
+                            actionName: "Integrate",
+                            lambda: props.integratorFunction,
+                            runOrder: 4,
+                        }),
                     ],
                 },
             ],
         });
-
-        // buildApprovalAction.grantManualApproval(role);
-        // deployApprovalAction.grantManualApproval(role);
     }
 }

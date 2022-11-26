@@ -45,6 +45,7 @@ new PipelineStack(app, "MonolithPipeline", {
     apiLambdaCode,
     edgeLambdaCode,
     edgeRespLambdaCode,
-    edgeInvalidator: plss.cloudfrontEdgeInvalidator,
+    edgeInvalidator: plss.edgeInvalidator,
+    integratorFunction: plss.integratorFunction,
     distributionId: ssr.distributionId,
 });

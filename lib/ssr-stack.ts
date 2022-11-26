@@ -173,7 +173,9 @@ export default class SsrStack extends cdk.Stack {
 
     private ssrEdgeFunction(code: lambda.Code, index: string): lambda.Function {
         const currentDate = new Date().toISOString();
-        return new lambda.Function(this, `ssr@Edge-${index}`, {
+        const id = `ssr@Edge-${index}`;
+        return new lambda.Function(this, id, {
+            functionName: `SSR-Edge-${index}`,
             runtime: lambda.Runtime.NODEJS_16_X,
             memorySize: 128,
             timeout: cdk.Duration.seconds(5),

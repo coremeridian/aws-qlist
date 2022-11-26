@@ -1,0 +1,10 @@
+{
+  "name": "integrator",
+  "packageManager": "yarn@3.1.1",
+  "dependencies": {
+    "@aws-sdk/client-cloudfront": "^3.216.0",
+    "@aws-sdk/client-codepipeline": "^3.216.0",
+    "@aws-sdk/client-lambda": "^3.216.0",
+    "@aws-sdk/credential-providers": "^3.216.0"
+  }
+}
