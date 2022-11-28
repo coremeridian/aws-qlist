@@ -214,10 +214,6 @@ export default class PipelineStack extends cdk.Stack {
                                 environment: {
                                     buildImage: LinuxBuildImage.STANDARD_5_0,
                                     environmentVariables: {
-                                        API_KEY: {
-                                            type: BuildEnvironmentVariableType.SECRETS_MANAGER,
-                                            value: "prod-database-access:codepipeline-api-key",
-                                        },
                                         APP_URL: {
                                             value: process.env.APP_URL ?? "",
                                         },
@@ -336,11 +332,17 @@ export default class PipelineStack extends cdk.Stack {
                         new LambdaInvokeAction({
                             actionName: "InvalidateEdge",
                             lambda: props.edgeInvalidator,
+                            userParameters: {
+                                distributionId,
+                            },
                             runOrder: 4,
                         }),
                         new LambdaInvokeAction({
                             actionName: "Integrate",
                             lambda: props.integratorFunction,
+                            userParameters: {
+                                distributionId,
+                            },
                             runOrder: 4,
                         }),
                     ],

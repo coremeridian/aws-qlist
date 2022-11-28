@@ -46,8 +46,7 @@ exports.handler = async (event) => {
             );
 
             const Id = userParams["distributionId"];
-            console.log("ID: ", Id);
-            if (Id && Id !== "null" && Id !== "") {
+            if (Id && Id !== "") {
                 let response = await cloudfront.send(
                     new GetDistributionConfigCommand({
                         Id,

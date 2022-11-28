@@ -29,11 +29,9 @@ exports.handler = async (event) => {
         event["CodePipeline.job"].data.actionConfiguration.configuration
             .UserParameters;
     try {
-        console.log("Hello???", userParams);
         if (userParams) {
-            const Id = userParams["distributionId"] ?? "";
-            console.log("Another hello???", Id);
-            if (Id && Id !== "null" && Id !== "") {
+            const Id = userParams["distributionId"];
+            if (Id && Id !== "") {
                 let response = await cloudfront.send(
                     new GetDistributionConfigCommand({
                         Id,
