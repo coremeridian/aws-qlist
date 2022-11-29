@@ -173,7 +173,7 @@ export default class PipelineStack extends cdk.Stack {
                                             commands: [
                                                 "yarn build-all",
                                                 "cd build/dist",
-                                                `sed -i 's/${process.env.NONCEPLACEHOLDER}/${originNonce}/g' index.html`,
+                                                `awk '{gsub("${process.env.NONCEPLACEHOLDER}", "${originNonce}")}' index.html`,
                                                 "cp index.html ../edge-dist/",
                                             ],
                                         },
