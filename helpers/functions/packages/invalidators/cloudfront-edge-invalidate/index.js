@@ -16,7 +16,7 @@ const { fromNodeProviderChain } = require("@aws-sdk/credential-providers");
 
 const config = {
     credentials: fromNodeProviderChain(),
-    region: process.env.CDK_DEFAULT_REGION,
+    region: process.env.REGION,
 };
 
 exports.handler = async (event) => {
@@ -31,19 +31,17 @@ exports.handler = async (event) => {
 
     try {
         if (userParams) {
-            const edgeRequest = await lambda.send(
-                new ListVersionsByFunctionCommand({
-                    FunctionName: "SSR-Edge-request",
-                    MaxItems: 1,
-                })
-            );
+            const edgeReqVersionsCommand = new ListVersionsByFunctionCommand({
+                FunctionName: "SSR-Edge-request",
+                MaxItems: 1,
+            });
+            const edgeRequest = await lambda.send(edgeReqVersionsCommand);
 
-            const edgeResponse = await lambda.send(
-                new ListVersionsByFunctionCommand({
-                    FunctionName: "SSR-Edge-response",
-                    MaxItems: 1,
-                })
-            );
+            const edgeRespVersionsCommand = new ListVersionsByFunctionCommand({
+                FunctionName: "SSR-Edge-response",
+                MaxItems: 1,
+            });
+            const edgeResponse = await lambda.send(edgeRespVersionsCommand);
 
             const Id = userParams["distributionId"];
             if (Id && Id !== "") {
@@ -54,7 +52,6 @@ exports.handler = async (event) => {
                 );
                 const { Etag: IfMatch, distributionConfig } = response;
 
-                console.log(edgeRequest.Versions[0]);
                 distributionConfig["DefaultCacheBehavior"][
                     "LambdaFunctionAssociations"
                 ]["Items"].map((item) => {
@@ -80,14 +77,12 @@ exports.handler = async (event) => {
     } catch (error) {
         const failureCommand = new PutJobFailureResultCommand({
             failureDetails: {
-                message: `${error.message}`,
+                message: error.message,
                 type: "JobFailed",
             },
             jobId,
         });
-        codepipeline.send(failureCommand, (err, data) => {
-            if (err) console.log(err, err.stack);
-            else console.log(data);
-        });
+        console.log("Error: ", error.message);
+        await codepipeline.send(failureCommand);
     }
 };

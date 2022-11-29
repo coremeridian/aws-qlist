@@ -16,7 +16,7 @@ const { fromNodeProviderChain } = require("@aws-sdk/credential-providers");
 
 const config = {
     credentials: fromNodeProviderChain(),
-    region: process.env.CDK_DEFAULT_REGION,
+    region: process.env.REGION,
 };
 
 exports.handler = async (event) => {
@@ -32,6 +32,7 @@ exports.handler = async (event) => {
         if (userParams) {
             const Id = userParams["distributionId"];
             if (Id && Id !== "") {
+                console.log("What's going on in here?");
                 let response = await cloudfront.send(
                     new GetDistributionConfigCommand({
                         Id,
@@ -47,7 +48,6 @@ exports.handler = async (event) => {
                 );
 
                 const lambdaConfig = edgeRequest.Versions[0];
-                console.log(lambdaConfig);
                 await lambda.send(
                     new UpdateFunctionConfigurationCommand({
                         FunctionName: lambdaConfig.FunctionName,
@@ -63,14 +63,12 @@ exports.handler = async (event) => {
     } catch (error) {
         const failureCommand = new PutJobFailureResultCommand({
             failureDetails: {
-                message: `${error.message}`,
+                message: error.message,
                 type: "JobFailed",
             },
             jobId,
         });
-        codepipeline.send(failureCommand, (err, data) => {
-            if (err) console.log(err, err.stack);
-            else console.log(data);
-        });
+        console.log("Error: ", error.message);
+        await codepipeline.send(failureCommand);
     }
 };
