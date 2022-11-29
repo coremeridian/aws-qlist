@@ -27,6 +27,7 @@ import { CfnParameter } from "aws-cdk-lib/aws-ssm";
 import PipelineLambdaStepStack from "../lib/pipeline-lambdas-stack";
 import * as sm from "aws-cdk-lib/aws-secretsmanager";
 import * as iam from "aws-cdk-lib/aws-iam";
+import { createHash, randomBytes } from "crypto";
 
 interface PipelineStackProps extends cdk.StackProps {
     readonly webappBucket: Bucket;
@@ -91,7 +92,9 @@ export default class PipelineStack extends cdk.Stack {
             })
         );
 
-        const originNonce = require("crypto").randomBytes(48);
+        const originNonce = createHash("sha1")
+            .update(randomBytes(20))
+            .digest("base64");
 
         const s3VersionId = new CfnParameter(this, "s3VersionId", {
             type: "String",
