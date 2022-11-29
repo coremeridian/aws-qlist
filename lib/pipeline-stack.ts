@@ -108,14 +108,16 @@ export default class PipelineStack extends cdk.Stack {
                             owner: "coremeridian",
                             repo: "qlist",
                             output: sourceOutput,
-                            connectionArn: process.env.CODESTARCONNECTION_QLIST,
+                            connectionArn:
+                                process.env.CODESTARCONNECTION_QLIST ?? "",
                         }),
                         new CodeStarConnectionsSourceAction({
                             actionName: "Checkout-aws",
                             owner: "coremeridian",
                             repo: "aws-qlist",
                             output: cdkSourceOutput,
-                            connectionArn: process.env.CODESTARCONNECTION_AWS,
+                            connectionArn:
+                                process.env.CODESTARCONNECTION_AWS ?? "",
                         }),
                     ],
                 },
