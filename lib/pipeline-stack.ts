@@ -91,6 +91,8 @@ export default class PipelineStack extends cdk.Stack {
             })
         );
 
+        const originNonce = require("crypto").randomBytes(48);
+
         const s3VersionId = new CfnParameter(this, "s3VersionId", {
             type: "String",
             value: "null",
@@ -106,16 +108,14 @@ export default class PipelineStack extends cdk.Stack {
                             owner: "coremeridian",
                             repo: "qlist",
                             output: sourceOutput,
-                            connectionArn:
-                                "arn:aws:codestar-connections:us-east-1:416591453861:connection/cff049b0-3e4d-4e0f-85e9-9b8a7c8245dc",
+                            connectionArn: process.env.CODESTARCONNECTION_QLIST,
                         }),
                         new CodeStarConnectionsSourceAction({
                             actionName: "Checkout-aws",
                             owner: "coremeridian",
                             repo: "aws-qlist",
                             output: cdkSourceOutput,
-                            connectionArn:
-                                "arn:aws:codestar-connections:us-east-1:416591453861:connection/cff049b0-3e4d-4e0f-85e9-9b8a7c8245dc",
+                            connectionArn: process.env.CODESTARCONNECTION_AWS,
                         }),
                     ],
                 },
@@ -168,6 +168,7 @@ export default class PipelineStack extends cdk.Stack {
                                             commands: [
                                                 "yarn build-all",
                                                 "cd build/dist",
+                                                `sed -i 's/${process.env.NONCEPLACEHOLDER}/${originNonce}/' index.html`,
                                                 "cp index.html ../edge-dist/",
                                             ],
                                         },
@@ -342,6 +343,7 @@ export default class PipelineStack extends cdk.Stack {
                             lambda: props.integratorFunction,
                             userParameters: {
                                 distributionId,
+                                originNonce,
                             },
                             runOrder: 4,
                         }),

@@ -30,9 +30,8 @@ exports.handler = async (event) => {
             .UserParameters;
     try {
         if (userParams) {
-            const Id = userParams["distributionId"];
+            const { distributionId: Id, originNonce: Nonce } = userParams;
             if (Id && Id !== "") {
-                console.log("What's going on in here?");
                 let response = await cloudfront.send(
                     new GetDistributionConfigCommand({
                         Id,
@@ -47,11 +46,26 @@ exports.handler = async (event) => {
                     })
                 );
 
-                const lambdaConfig = edgeRequest.Versions[0];
+                const edgeRequest = await lambda.send(
+                    new ListVersionsByFunctionCommand({
+                        FunctionName: "SSR-Edge-response",
+                        MaxItems: 1,
+                    })
+                );
+
+                const edgeReqConfig = edgeRequest.Versions[0];
                 await lambda.send(
                     new UpdateFunctionConfigurationCommand({
-                        FunctionName: lambdaConfig.FunctionName,
-                        Environment: { ...lambdaConfig.Environment, ETAG: Etag },
+                        FunctionName: edgeReqConfig.FunctionName,
+                        Environment: { ...edgeReqConfig.Environment, ETAG: Etag },
+                    })
+                );
+
+                const edgeRespConfig = edgeRequest.Versions[0];
+                await lambda.send(
+                    new UpdateFunctionConfigurationCommand({
+                        FunctionName: edgeRespConfig.FunctionName,
+                        Environment: { ...edgeRespConfig.Environment, NONCE: Nonce },
                     })
                 );
             }

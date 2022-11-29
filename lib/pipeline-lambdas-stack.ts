@@ -54,7 +54,6 @@ export default class PipelineLambdaStepStack extends cdk.Stack {
         const ssrFunctionInvalidationPolicy = new iam.PolicyStatement({
             resources: ["arn:aws:lambda:*:*:function:SSR-Edge-*"],
             actions: ["lambda:*"],
-            effect: iam.Effect.ALLOW,
         });
 
         fn.role?.attachInlinePolicy(
@@ -79,7 +78,6 @@ export default class PipelineLambdaStepStack extends cdk.Stack {
                 "arn:aws:lambda:*:*:function:API-*",
             ],
             actions: ["lambda:*"],
-            effect: iam.Effect.ALLOW,
         });
 
         fn.role?.attachInlinePolicy(
