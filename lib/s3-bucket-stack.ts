@@ -45,7 +45,7 @@ export class S3BucketCfnStack extends cdk.Stack {
             new PolicyStatement({
                 principals: [new AnyPrincipal()],
                 actions: ["s3:GetObject"],
-                resources: ["arn:aws:s3:::qlist.coremeridian.xyz/*"],
+                resources: [`arn:aws:s3:::${name}/*`],
                 conditions: {
                     StringLike: {
                         "aws:Referer": [

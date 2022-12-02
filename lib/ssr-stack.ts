@@ -172,7 +172,7 @@ export default class SsrStack extends cdk.Stack {
         new CnameRecord(this, "qlist-coremeridian-cname", {
             zone: hostedZone,
             recordName: "qlist-*",
-            target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
+            domainName: distribution.distributionDomainName,
         });
     }
 
