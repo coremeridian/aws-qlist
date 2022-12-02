@@ -19,6 +19,8 @@ const config = {
     region: process.env.REGION,
 };
 
+const http = require("http");
+
 exports.handler = async (event) => {
     const cloudfront = new CloudFrontClient(config);
     const codepipeline = new CodePipelineClient(config);
@@ -30,7 +32,7 @@ exports.handler = async (event) => {
             .UserParameters;
     try {
         if (userParams) {
-            const { distributionId: Id, originNonce: Nonce } = userParams;
+            const { distributionId: Id, originUrl: ORIGIN_SOURCE } = userParams;
             if (Id && Id !== "") {
                 let response = await cloudfront.send(
                     new GetDistributionConfigCommand({
@@ -46,28 +48,39 @@ exports.handler = async (event) => {
                     })
                 );
 
-                const edgeRequest = await lambda.send(
-                    new ListVersionsByFunctionCommand({
-                        FunctionName: "SSR-Edge-response",
-                        MaxItems: 1,
-                    })
-                );
+                /*const edgeResponse = await lambda.send(
+                                            new ListVersionsByFunctionCommand({
+                                                FunctionName: "SSR-Edge-response",
+                                                MaxItems: 1,
+                                            })
+                                        );*/
 
                 const edgeReqConfig = edgeRequest.Versions[0];
                 await lambda.send(
                     new UpdateFunctionConfigurationCommand({
                         FunctionName: edgeReqConfig.FunctionName,
-                        Environment: { ...edgeReqConfig.Environment, ETAG: Etag },
+                        Environment: {
+                            ...edgeReqConfig.Environment,
+                            ETAG: Etag,
+                            ORIGIN_SOURCE,
+                        },
                     })
                 );
 
-                const edgeRespConfig = edgeRequest.Versions[0];
-                await lambda.send(
-                    new UpdateFunctionConfigurationCommand({
-                        FunctionName: edgeRespConfig.FunctionName,
-                        Environment: { ...edgeRespConfig.Environment, NONCE: Nonce },
-                    })
-                );
+                const postReq = http.request({
+                    host: "qlist.coremeridian.xyz",
+                    port: "443",
+                    path: "/send_request",
+                    method: "POST",
+                });
+
+                postReq.end({ address: ORIGIN_SOURCE });
+                /*const edgeRespConfig = edgeResponse.Versions[0];
+                           await lambda.send(
+                           new UpdateFunctionConfigurationCommand({
+                           FunctionName: edgeRespConfig.FunctionName,
+                           })
+                           );*/
             }
         }
         const successCommand = new PutJobSuccessResultCommand({

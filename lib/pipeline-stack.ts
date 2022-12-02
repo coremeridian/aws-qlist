@@ -92,9 +92,9 @@ export default class PipelineStack extends cdk.Stack {
             })
         );
 
-        const originNonce = createHash("sha1")
-            .update(randomBytes(20))
-            .digest("base64");
+        /*const originNonce = createHash("sha1")
+            .update(randomBytes(48))
+            .digest("base64");*/
 
         const s3VersionId = new CfnParameter(this, "s3VersionId", {
             type: "String",
@@ -173,7 +173,7 @@ export default class PipelineStack extends cdk.Stack {
                                             commands: [
                                                 "yarn build-all",
                                                 "cd build/dist",
-                                                `awk '{gsub("${process.env.NONCEPLACEHOLDER}", "${originNonce}")}' index.html`,
+                                                //`awk '{gsub("${process.env.NONCEPLACEHOLDER}", "${originNonce}")}' index.html`,
                                                 "cp index.html ../edge-dist/",
                                             ],
                                         },
@@ -348,7 +348,8 @@ export default class PipelineStack extends cdk.Stack {
                             lambda: props.integratorFunction,
                             userParameters: {
                                 distributionId,
-                                originNonce,
+                                //originNonce,
+                                originUrl: props.webappBucket.bucketWebsiteUrl,
                             },
                             runOrder: 4,
                         }),

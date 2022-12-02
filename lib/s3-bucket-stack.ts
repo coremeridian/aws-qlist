@@ -2,7 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { OriginAccessIdentity } from "aws-cdk-lib/aws-cloudfront";
-import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { PolicyStatement, AnyPrincipal } from "aws-cdk-lib/aws-iam";
 
 interface S3BucketCfnStackProps extends cdk.StackProps {
     bucketName?: string;
@@ -21,7 +21,7 @@ export class S3BucketCfnStack extends cdk.Stack {
             versioned: true,
             encryption: s3.BucketEncryption.S3_MANAGED,
             websiteIndexDocument: "index.html",
-            websiteErrorDocument: "error.html",
+            websiteErrorDocument: "index.html",
             publicReadAccess: false,
             autoDeleteObjects: true,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -41,5 +41,20 @@ export class S3BucketCfnStack extends cdk.Stack {
         });
 
         this.bucket.grantRead(this.cloudfrontOAI);
+        this.bucket.addToResourcePolicy(
+            new PolicyStatement({
+                principals: [new AnyPrincipal()],
+                actions: ["s3:GetObject"],
+                resources: ["arn:aws:s3:::qlist.coremeridian.xyz/*"],
+                conditions: {
+                    StringLike: {
+                        "aws:Referer": [
+                            "http://qlist.coremeridian.xyz/*",
+                            "http://qlist-*.coremeridian.xyz/*",
+                        ],
+                    },
+                },
+            })
+        );
     }
 }

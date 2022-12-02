@@ -10,8 +10,9 @@ import {
     ViewerCertificate,
     CloudFrontAllowedMethods,
     CloudFrontAllowedCachedMethods,
+    ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
-import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { CnameRecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as sm from "aws-cdk-lib/aws-secretsmanager";
@@ -82,6 +83,8 @@ export default class SsrStack extends cdk.Stack {
                         {
                             allowedMethods:
                                 CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
+                            viewerProtocolPolicy:
+                                ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                             isDefaultBehavior: true,
                             forwardedValues: {
                                 queryString: true,
@@ -98,6 +101,8 @@ export default class SsrStack extends cdk.Stack {
                         {
                             allowedMethods:
                                 CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
+                            viewerProtocolPolicy:
+                                ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                             pathPattern: "/*.*",
                             forwardedValues: {
                                 queryString: false,
@@ -164,9 +169,9 @@ export default class SsrStack extends cdk.Stack {
             privateZone: false,
         });
 
-        new ARecord(this, "Alias", {
+        new CnameRecord(this, "qlist-coremeridian-cname", {
             zone: hostedZone,
-            recordName: "qlist",
+            recordName: "qlist-*",
             target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
         });
     }
